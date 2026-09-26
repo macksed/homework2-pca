@@ -116,3 +116,287 @@ plot(
 
 grid()
 ```
+```{r first-pc}
+V <- crossprod(x)
+
+eig <- eigen(V, symmetric = TRUE)
+
+U <- eig$vectors
+
+Z <- x %*% U
+
+u1 <- U[, 1]
+z1 <- Z[, 1]
+```
+
+```{r first-pc-plots, fig.width=10, fig.height=4}
+par(mfrow = c(1, 2))
+
+plot(
+  u1,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Column",
+  ylab = "Eigenvector Value",
+  main = "First Eigenvector"
+)
+
+plot(
+  z1,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Row",
+  ylab = "PC Score",
+  main = "First PC Score"
+)
+
+par(mfrow = c(1, 1))
+```
+The first eigen vector identifies the dominant pattern across the columns of the image. It has one extremely large loading near 78, which corresponds to the bright vertical line in the original image. The first PC score determines the strength of this pattern for each row. Because the bright line runs through nearly the entire height of the image, the PC scores remain relatively consistent across rows. Therefore, the first PC primarily captures the vertical line, while much of the remaining variation is background noise.
+
+```{r compare-k}
+par(mfrow = c(2, 3))
+
+plot_image(x, "Original")
+
+for (k in c(5, 10, 20, 30, 50)) {
+  result <- compress_image(x, k)
+  plot_image(result$approximation, paste("k =", k))
+}
+
+par(mfrow = c(1, 1))
+```
+I think \(k=5\) is a more than good approximation for Image 1. Even at \(k=5\), the approximation already captures the main structure of the image, especially the vertical strip on the right side. Increasing \(k\) to 10, 20, 30, or 50 or further doesn't really produce a major visible improvement, and mainly adds small background detail. \(k=5\) provides a good balance between compression and image quality.
+
+# Image 2 
+```{r read-image2}
+x2 <- read_csv("image2.csv", show_col_types = FALSE)
+x2 <- data.matrix(x2)
+
+plot_image(x2, "Original Image 2")
+```
+
+```{r image2-approximations, fig.width=12, fig.height=9}
+par(mfrow = c(3, 4), mar = c(1, 1, 3, 1))
+
+plot_image(x2, "Original")
+
+for (k in 1:10) {
+  result <- compress_image(x2, k)
+  plot_image(result$approximation, paste("k =", k))
+}
+
+par(mfrow = c(1, 1))
+```
+
+```{r image2-error}
+k_values2 <- 1:ncol(x2)
+
+errors2 <- sapply(k_values2, function(k) {
+  compress_image(x2, k)$error
+})
+
+plot(
+  k_values2,
+  errors2,
+  type = "l",
+  lwd = 2,
+  xlab = "Number of Principal Components (k)",
+  ylab = "Frobenius Error",
+  main = "Image 2: Approximation Error vs. k"
+)
+
+grid()
+```
+
+```{r image2-pc}
+eig2 <- eigen(crossprod(x2), symmetric = TRUE)
+
+U2 <- eig2$vectors
+Z2 <- x2 %*% U2
+
+u1_2 <- U2[, 1]
+z1_2 <- Z2[, 1]
+
+par(mfrow = c(1, 2))
+
+plot(
+  u1_2,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Column",
+  ylab = "Eigenvector Value",
+  main = "Image 2: First Eigenvector"
+)
+
+plot(
+  z1_2,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Row",
+  ylab = "PC Score",
+  main = "Image 2: First PC Score"
+)
+
+par(mfrow = c(1, 1))
+```
+The first eigenvector describes the dominant intensity pattern across the columns of Image 2, while the first PC score shows how strongly that pattern appears in each row. The PC scores vary substantially between rows, corresponding to the horizontal light and dark bands visible in the original image. Basically all of the image's structure is contained in the first principal component, which explains why the rank 1 approximation looks nearly identical to the original image.
+I would choose \(k=1\) for Image 2. The rank 1 approximation is visually almost indistinguishable from the original image, and its approximation error is extremely small relative to the magnitude of the original image. Although \(k=2\) essentially reconstructs the image exactly, the visual improvement over \(k=1\) is negligible. I think that \(k=1\) provides the better compression while still preserving nearly all of the image
+
+# Image 3
+
+```{r read-image3}
+x3 <- read_csv("image3.csv", show_col_types = FALSE)
+x3 <- data.matrix(x3)
+
+plot_image(x3, "Original Image 3")
+```
+```{r image3-approximations, fig.width=12, fig.height=9}
+par(mfrow = c(3, 4), mar = c(1, 1, 3, 1))
+
+plot_image(x3, "Original")
+
+for (k in c(1:10, 30)) {
+  result <- compress_image(x3, k)
+  plot_image(result$approximation, paste("k =", k))
+}
+
+par(mfrow = c(1, 1))
+```
+```{r image3-error}
+k_values3 <- 1:ncol(x3)
+
+errors3 <- sapply(k_values3, function(k) {
+  compress_image(x3, k)$error
+})
+
+plot(
+  k_values3,
+  errors3,
+  type = "l",
+  lwd = 2,
+  xlab = "Number of Principal Components (k)",
+  ylab = "Frobenius Error",
+  main = "Image 3: Approximation Error vs. k"
+)
+
+grid()
+```
+
+```{r image3-pc}
+eig3 <- eigen(crossprod(x3), symmetric = TRUE)
+
+U3 <- eig3$vectors
+Z3 <- x3 %*% U3
+
+u1_3 <- U3[, 1]
+z1_3 <- Z3[, 1]
+
+par(mfrow = c(1, 2))
+
+plot(
+  u1_3,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Column",
+  ylab = "Eigenvector Value",
+  main = "Image 3: First Eigenvector"
+)
+
+plot(
+  z1_3,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Row",
+  ylab = "PC Score",
+  main = "Image 3: First PC Score"
+)
+
+par(mfrow = c(1, 1))
+```
+The first eigen vector represents the strongest overall horizontal intensity pattern in the pic. Its magnitude changes across the columns, reflecting areas of the image that contribute more strongly to the dominant structure. The first PC score varies a ton across the rows because different parts of the image contain different combinations of the dark puppy and the lighter background. The first component captures the broad contrast and overall shape of the image, but additional components are required to recover details such as the puppys face, eyes, hair,  paws
+
+I would choose \(k=30\) for Image 3. At smaller values such as \(k=5\) or \(k=10\), the puppy is recognizable but many details are blurred. By \(k=30\), the face, body, paws, and surrounding background are represented clearly and the approximation is visually close to the original. Increasing \(k\) further improves fine texture, but the visual improvements become less significant. \(k=30\) provides a good balance between image quality and compression
+
+# Image 4
+
+```{r read-image4}
+x4 <- read_csv("image4.csv", show_col_types = FALSE)
+x4 <- data.matrix(x4)
+
+plot_image(x4, "Original Image 4")
+```
+
+```{r image4-approximations, fig.width=12, fig.height=9}
+par(mfrow = c(3, 4), mar = c(1, 1, 3, 1))
+
+plot_image(x4, "Original")
+
+for (k in c(1:10, 15)) {
+  result <- compress_image(x4, k)
+  plot_image(result$approximation, paste("k =", k))
+}
+
+par(mfrow = c(1, 1))
+```
+
+```{r image4-error}
+k_values4 <- 1:ncol(x4)
+
+errors4 <- sapply(k_values4, function(k) {
+  compress_image(x4, k)$error
+})
+
+plot(
+  k_values4,
+  errors4,
+  type = "l",
+  lwd = 2,
+  xlab = "Number of Principal Components (k)",
+  ylab = "Frobenius Error",
+  main = "Image 4: Approximation Error vs. k"
+)
+
+grid()
+```
+
+```{r image4-pc}
+eig4 <- eigen(crossprod(x4), symmetric = TRUE)
+
+U4 <- eig4$vectors
+Z4 <- x4 %*% U4
+
+u1_4 <- U4[, 1]
+z1_4 <- Z4[, 1]
+
+par(mfrow = c(1, 2))
+
+plot(
+  u1_4,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Column",
+  ylab = "Eigenvector Value",
+  main = "Image 4: First Eigenvector"
+)
+
+plot(
+  z1_4,
+  type = "l",
+  lwd = 2,
+  xlab = "Image Row",
+  ylab = "PC Score",
+  main = "Image 4: First PC Score"
+)
+
+par(mfrow = c(1, 1))
+```
+
+The first eigen vector captures the strongest broad pattern across the columns of Image 4. Larger loadings occur around the brighter region near the right side of the image, indicating that this area contributes strongly to the first component. The first PC score describes how the strength of this pattern changes from the top to the bottom of the image. The rank 1 approximation preserves large areas of light and dark intensity, but it can't reproduce the finer details and texture in the scene
+
+
+I would choose \(k=15\) for Image 4. At lower values of \(k\), the major light and dark regions are visible but the image is really blurred. At \(k=15\), the important objects and overall scene are much clearer and the approximation resembles the original image closely. Increasing \(k\) beyond this mainly adds smaller details and texture. \(k=15\) appears to provide a reasonable compromise between compression and visual quality.
+
+
+
+
